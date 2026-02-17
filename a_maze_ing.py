@@ -4,21 +4,27 @@ import random
 
 
 class Path42Error(Exception):
+
     """
-    Class Path42Error to custom the error of 42 pattern
+    Class Path42Error to custom the error
+    for space ths is not enough to hold 42 pattern
     """
     pass
 
 
 class cell:
+
     """
     Class for creating independant cell
     """
+
     def __init__(self) -> None:
+
         """
         Constroctur to initiliaze the walls of the cell as close (True) and
         not visited (False)
         """
+
         self.north = True
         self.east = True
         self.south = True
@@ -28,56 +34,76 @@ class cell:
 
 
 class MazeGenerator:
+
     """
     Class that make the maze Generate the maze with corridors
     """
-    def __init__(self, x: int, y: int) -> None:
+
+    def __init__(self, width: int, height: int) -> None:
+
         """
         Constrocture that initialize and creat a grid from multiple cells
         """
-        self.x = x
-        self.y = y
-        self.maze = [[cell() for _ in range(x)] for _ in range(y)]
 
-    def rm_wall(self, pos1: tuple, pos_2: tuple, d1: str, d_2: str) -> None:
+        self.width = width
+        self.height = height
+        self.maze = [[cell() for _ in range(width)] for _ in range(height)]
+
+    def rm_wall(self, pos1: tuple, pos_2: tuple, d1: str, d_2: str) -> bool:
+
         """
         Method that remove the wall of the cell in a specifique direction
         and remove also the wall of the other cell that face the main cell
         """
-        self.maze[pos1[1]][pos1[0]].__dict__[d1] = False
-        self.maze[pos_2[1]][pos_2[0]].__dict__[d_2] = False
-        self.maze[pos1[1]][pos1[0]].visited = True
-        self.maze[pos_2[1]][pos_2[0]].visited = True
+        if (
+            not self.maze[pos1[1]][pos1[0]].path_42 and
+            not self.maze[pos_2[1]][pos_2[0]].path_42
+        ):
+            self.maze[pos1[1]][pos1[0]].__dict__[d1] = False
+            self.maze[pos_2[1]][pos_2[0]].__dict__[d_2] = False
+            return True
 
-    def neighbor(self, cord: tuple) -> Union[list, None]:
+        return False
+
+    def neighbor_back(self, cord: tuple = (0, 0)) -> Union[list, None]:
+
         """
         Methode that return all valid neighbor of the cord and return
         random one
         """
+
         valid = list()
+
         if (
             cord[1] > 0 and not
             (self.maze[cord[1] - 1][cord[0]].visited)
             and not (self.maze[cord[1] - 1][cord[0]].path_42)
         ):
+
             valid.append([cord[0], cord[1] - 1, 'n'])
+
         if (
-            cord[1] + 1 < self.y and not
+            cord[1] + 1 < self.height and not
             (self.maze[cord[1] + 1][cord[0]].visited)
             and not (self.maze[cord[1] + 1][cord[0]].path_42)
         ):
+
             valid.append([cord[0], cord[1] + 1, 's'])
+
         if (
             cord[0] > 0 and not
             (self.maze[cord[1]][cord[0] - 1].visited)
             and not (self.maze[cord[1]][cord[0] - 1].path_42)
         ):
+
             valid.append([cord[0] - 1, cord[1], 'w'])
+
         if (
-            cord[0] + 1 < self.x and not
+            cord[0] + 1 < self.width and not
             (self.maze[cord[1]][cord[0] + 1].visited)
             and not (self.maze[cord[1]][cord[0] + 1].path_42)
         ):
+
             valid.append([cord[0] + 1, cord[1], 'e'])
 
         if not len(valid):
@@ -85,51 +111,241 @@ class MazeGenerator:
 
         return random.choice(valid)
 
-    def corridors(self, pos: tuple = (0, 0), flag=False) -> None:
-        """
-        Methode that creat corridors
-        """
-        if not flag:
-            self.path_42()
-            flag = True
+    def corridors_back(self, pos: tuple = (0, 0)) -> None:
 
-        valid = self.neighbor(pos)
+        """
+        Methode that creat corridors using backtracker algo
+        """
+
+        self.maze[pos[1]][pos[0]].visited = True
+        valid = self.neighbor_back(pos)
 
         while valid:
             if valid[2] == 'n':
+
                 self.rm_wall(pos, (valid[0], valid[1]), 'north', 'south')
             elif valid[2] == 's':
+
                 self.rm_wall(pos, (valid[0], valid[1]), 'south', 'north')
             elif valid[2] == 'e':
+
                 self.rm_wall(pos, (valid[0], valid[1]), 'east', 'west')
             elif valid[2] == 'w':
+
                 self.rm_wall(pos, (valid[0], valid[1]), 'west', 'east')
-            pos = (valid[0], valid[1])
-            self.corridors(pos)
-            valid = self.neighbor(pos)
+
+            self.corridors_back((valid[0], valid[1]))
+            valid = self.neighbor_back(pos)
+
+    def neighbor_prime(self, valid: list,
+                       cord: tuple = (0, 0)) -> Union[list, None]:
+        """
+        Methode that return all valid neighbor of the cord and return
+        random one
+        """
+
+        if (
+            cord[1] > 0 and not
+            (self.maze[cord[1] - 1][cord[0]].visited)
+            and not (self.maze[cord[1] - 1][cord[0]].path_42)
+        ):
+
+            valid.append((cord[0], cord[1] - 1))
+
+        if (
+            cord[1] + 1 < self.height and not
+            (self.maze[cord[1] + 1][cord[0]].visited)
+            and not (self.maze[cord[1] + 1][cord[0]].path_42)
+        ):
+
+            valid.append((cord[0], cord[1] + 1))
+
+        if (
+            cord[0] > 0 and not
+            (self.maze[cord[1]][cord[0] - 1].visited)
+            and not (self.maze[cord[1]][cord[0] - 1].path_42)
+        ):
+
+            valid.append((cord[0] - 1, cord[1]))
+
+        if (
+            cord[0] + 1 < self.width and not
+            (self.maze[cord[1]][cord[0] + 1].visited)
+            and not (self.maze[cord[1]][cord[0] + 1].path_42)
+        ):
+
+            valid.append((cord[0] + 1, cord[1]))
+
+        return valid
+
+    def closest_neib(self, cord: tuple) -> Union[str, None]:
+
+        """
+        Method that return the closest neighbor for the cell
+        with cordinates (cord)
+        """
+
+        direct = list()
+
+        if (
+            cord[1] - 1 >= 0 and self.maze[cord[1] - 1][cord[0]].visited
+            and not (self.maze[cord[1] - 1][cord[0]].path_42)
+        ):
+
+            direct.append('n')
+        if (
+            cord[1] + 1 < self.height
+            and self.maze[cord[1] + 1][cord[0]].visited
+            and not (self.maze[cord[1] + 1][cord[0]].path_42)
+        ):
+
+            direct.append('s')
+        if (
+            cord[0] - 1 >= 0 and self.maze[cord[1]][cord[0] - 1].visited
+            and not (self.maze[cord[1]][cord[0] - 1].path_42)
+        ):
+
+            direct.append('w')
+        if (
+            cord[0] + 1 < self.width
+            and self.maze[cord[1]][cord[0] + 1].visited
+            and not (self.maze[cord[1]][cord[0] + 1].path_42)
+        ):
+
+            direct.append('e')
+
+        if len(direct):
+            return random.choice(direct)
+
+        return None
+
+    def rm_wall_prime(self, dir: str, pos1: tuple) -> bool:
+
+        """
+        Method that remove wall in specifique direction (dir),
+        in case of seccusse it return true
+        """
+
+        if dir == 'n':
+
+            return self.rm_wall(pos1, (pos1[0], pos1[1] - 1), 'north', 'south')
+        elif dir == 's':
+
+            return self.rm_wall(pos1, (pos1[0], pos1[1] + 1), 'south', 'north')
+        elif dir == 'e':
+
+            return self.rm_wall(pos1, (pos1[0] + 1, pos1[1]), 'east', 'west')
+        elif dir == 'w':
+
+            return self.rm_wall(pos1, (pos1[0] - 1, pos1[1]), 'west', 'east')
+
+    def corridors_prime(self, pos1: tuple = (0, 0)):
+
+        """
+        Methode that return all valid neighbor of the cell and add it to the
+        old ones and return everything
+        """
+
+        valid2 = list()
+
+        self.maze[pos1[1]][pos1[0]].visited = True
+
+        valid2 = self.neighbor_prime(valid2, pos1)
+
+        while valid2:
+
+            pos2 = random.choice(valid2)
+            dir = self.closest_neib(pos2)
+
+            if dir:
+
+                if self.rm_wall_prime(dir, pos2):
+
+                    self.maze[pos2[1]][pos2[0]].visited = True
+                    valid2 = self.neighbor_prime(valid2, pos2)
+
+                valid2.remove(pos2)
+
+            else:
+
+                valid2.remove(pos2)
+
+            valid2 = list(set(valid2))
+
+    def corridors_unperfect(self, corr: tuple = (0, 0)) -> None:
+
+        """
+        Methode that create the maze with multiple way (none perfect maze)
+        """
+
+        self.corridors_prime(corr)
+
+        counter = 0
+
+        while counter < (self.width + self.height):
+
+            x = random.randint(0, self.width - 2)
+            y = random.randint(0, self.height - 2)
+
+            if self.rm_wall((x, y), (x, y + 1), 'south', 'north'):
+
+                counter += 1
+            elif self.rm_wall((x, y), (x + 1, y), 'east', 'west'):
+
+                counter += 1
+
+    def generate_maze(self, algo: str):
+
+        """
+        Methode that generate the maze depends on the algo that we want to use
+        """
+
+        self.path_42()
+
+        if algo == 'b':
+
+            self.corridors_back()
+        elif algo == 'p':
+
+            self.corridors_prime()
+        elif algo == 'n':
+
+            self.corridors_unperfect()
 
     def path_42(self):
+
         """
         Methode that make the 42 pattern
         """
-        if self.x < 9 or self.y < 9:
+
+        if self.width < 9 or self.height < 9:
             raise Path42Error('Invalid space for creating 42 pattern')
-        st1 = int(self.x / 2 - 3)
-        st2 = int(self.y / 2 - 2)
+
+        st1 = self.width // 2 - 3
+        st2 = self.height // 2 - 2
+
         for i in range(2):
             self.maze[st2 + i][st1].path_42 = True
+
         for i in range(3):
             self.maze[st2 + 2][st1 + i].path_42 = True
+
         for i in range(2):
             self.maze[st2 + 3 + i][st1 + 2].path_42 = True
+
         st1 += 4
+
         for i in range(2):
             self.maze[st2][st1 + i].path_42 = True
+
         for i in range(2):
             self.maze[st2 + i][st1 + 2].path_42 = True
+
         for i in range(2):
             self.maze[st2 + 2][st1 + 2 - i].path_42 = True
+
         for i in range(2):
             self.maze[st2 + 2 + i][st1].path_42 = True
+
         for i in range(3):
             self.maze[st2 + 4][st1 + i].path_42 = True
