@@ -1,5 +1,24 @@
 import curses
 import time
+from maze_generator import MazeGenerator
+import curses
+import sys
+
+
+def ft_render(config : dict):
+    width = config["WIDTH"]
+    height = config["HEIGHT"]
+    entry_coord = config["ENTRY"]
+    exit_coord = config["EXIT"]
+    
+    maze = MazeGenerator(width, height, entry_coord, exit_coord)
+    try :
+        maze.generate_maze("n")
+    except RecursionError:
+        print("The width or the height are too big try with smaller values")
+        sys.exit(1)
+    curses.wrapper(draw_maze, maze)
+
 
 
 def safe_addch(stdscr, y, x, ch, attr=0):
@@ -45,7 +64,7 @@ def draw_maze(stdscr, maze) -> None:
     try:
         while True:
             
-            maze_width = cols* CELL_WIDTH + 1
+            maze_width = cols * CELL_WIDTH + 1
             maze_height = rows * CELL_HEIGHT + 1
             stdscr.clear()
             height, width = stdscr.getmaxyx()
@@ -104,11 +123,14 @@ def draw_maze(stdscr, maze) -> None:
             if key == ord('2'):
                 continue
             if key == ord('1'):
-                from a_maze_ing import MazeGenerator
-                maze0 = MazeGenerator(maze.width, maze.height, maze.entry, maze.exit)
-                maze0 = maze.generate_maze("b")
+                curses.nocbreak()
+                stdscr.keypad(False)
+                curses.echo()
+                curses.endwin()
                 stdscr.clear()
-                curses.wrapper(draw_maze, maze0)
+                maze2 = MazeGenerator(maze.width, maze.height, maze.entry, maze.exit)
+                maze2.generate_maze("n")
+                curses.wrapper(draw_maze, maze2)
             if key == curses.KEY_RESIZE:
                 stdscr.clear()
                 continue
