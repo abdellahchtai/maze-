@@ -1,0 +1,16 @@
+
+      WIDTH      =     20   
+      HEIGHT      =      20   
+ 
+      ENTRY       =      0      ,     0       
+
+      EXIT      =      8      ,      8           
+
+
+
+      OUTPUT_FILE      =      .txt         
+    
+      PERFECT      =     0          
+
+
+
