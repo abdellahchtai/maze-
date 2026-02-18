@@ -1,12 +1,12 @@
 
 
 
-      WIDTH      =     20  
-      HEIGHT      =      20   
+      WIDTH      =     40 
+      HEIGHT      =     40   
  
       ENTRY       =      1      ,     1       
 
-      EXIT      =      5      ,      5           
+      EXIT      =      5      ,      28           
 
 
 

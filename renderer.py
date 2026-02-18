@@ -24,7 +24,7 @@ def ft_render(config : dict):
     #     sys.exit(1)
     path = None
     maze = MazeGenerator(width, height, entry_coord, exit_coord)
-    maze.generate_maze("n")
+    maze.generate_maze("b")
     animated = True
     while True:
         try:
@@ -32,7 +32,7 @@ def ft_render(config : dict):
             if action == "QUIT":
                 break
             if action == "REGENERATE":
-                maze.generate_maze("n")
+                maze.generate_maze("b")
                 path = None
                 animated = True
             if action == "PATH":
@@ -76,8 +76,8 @@ def draw_maze(stdscr, maze, path, animated: bool) -> str | None:
     curses.use_default_colors()
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_RED)
-    curses.init_pair(0, curses.COLOR_BLACK, curses.COLOR_WHITE)
-    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_BLACK)
+    curses.init_pair(0, curses.COLOR_BLACK, curses.COLOR_BLACK)
+    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
     curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_YELLOW)
     curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
     curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_CYAN)

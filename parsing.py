@@ -239,6 +239,26 @@ def parse_config(file_name: str) -> Dict | str:
             items["PERFECT"] = items["PERFECT"].lower() in {"true", "1", "yes"}
             # for key, value in items.items():
             #     print(f"|{key}:{value}|")
+
+            from maze_generator import MazeGenerator
+            entry_coord = items["ENTRY"]
+            exit_coord = items["EXIT"]
+            maze = MazeGenerator(items["WIDTH"] , items["HEIGHT"],  entry_coord, exit_coord)
+            maze.generate_maze("b")
+            grid = maze.grid
+            # for row_index, row in enumerate(grid):
+            #     for col_index, cell in enumerate(row):
+            #         current_coord = (row_index, col_index)
+            #         if current_coord == entry_coord or current_coord == exit_coord:
+            #             if cell.path_42 == True:
+            if maze.grid[entry_coord[1]][entry_coord[0]].path_42 and maze.grid[exit_coord[1]][exit_coord[0]].path_42:
+                raise ValueError("The ENTRY and EXIT coordinate must not be in the 42 draw")
+            if maze.grid[entry_coord[1]][entry_coord[0]].path_42:
+                raise ValueError("The ENTRY coordinate must not be in the 42 draw")
+            if maze.grid[exit_coord[1]][exit_coord[0]].path_42:
+                raise ValueError("The EXIT coordinate must not be in the 42 draw")
+            
+
             return items
     except (FileNotFoundError, PermissionError, ValueError) as e:
         return e
