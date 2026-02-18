@@ -1,6 +1,6 @@
 import curses
 import time
-from maze_generator import MazeGenerator
+from maze_generator import MazeGenerator, pathfinder
 import curses
 import sys
 
@@ -11,15 +11,39 @@ def ft_render(config : dict):
     entry_coord = config["ENTRY"]
     exit_coord = config["EXIT"]
     
+
+    # maze = MazeGenerator(width, height, entry_coord, exit_coord)
+    # try :
+    #     maze.generate_maze("n")
+    #     # def pathfinder(maze: Any, ENTRY: Any, EXIT: Any, WIDTH: Any,
+    #     #        HEIGHT: Any) -> Any:
+    #     path = pathfinder(maze.grid, maze.entry, maze.exit, maze.width, maze.height)
+    #     print(path)
+    # except (RecursionError, KeyboardInterrupt):
+    #     print("The width or the height are too big try with smaller values")
+    #     sys.exit(1)
+    path = None
+    maze = MazeGenerator(width, height, entry_coord, exit_coord)
+    maze.generate_maze("n")
+    animated = True
     while True:
-        maze = MazeGenerator(width, height, entry_coord, exit_coord)
-        try :
-            maze.generate_maze("n")
-            action = curses.wrapper(draw_maze, maze)
+        try:
+            action = curses.wrapper(draw_maze, maze, path, animated)
             if action == "QUIT":
                 break
             if action == "REGENERATE":
-                continue
+                maze.generate_maze("n")
+                path = None
+                animated = True
+            if action == "PATH":
+                # if path is None:2
+                if path is not None:
+                    path = None
+                else:
+                    path = pathfinder(maze.grid, maze.entry, maze.exit, maze.width, maze.height)
+                animated = False
+                # else:
+                #     path = None
         except (RecursionError, KeyboardInterrupt):
             print("The width or the height are too big try with smaller values")
             sys.exit(1)
@@ -44,7 +68,7 @@ def safe_addstr(stdscr, y, x, text, attr=0):
             pass
 
 
-def draw_maze(stdscr, maze) ->str | None:
+def draw_maze(stdscr, maze, path, animated: bool) -> str | None:
     curses.curs_set(0)            # hide the blinking cursor
     stdscr.nodelay(True)          # don't block on getch()
     stdscr.timeout(100)           # wait 100ms between refreshes
@@ -63,10 +87,10 @@ def draw_maze(stdscr, maze) ->str | None:
     grid = maze.grid
     entry_x, entry_y = maze.entry
     exit_x, exit_y = maze.exit
-    animate = True
+    animate = animated
     rows = maze.width
     cols = maze.height
-    total_cells = rows * cols
+    total_cells = rows * cols 
 
     TARGET_DURATION = 1.2
     delay = TARGET_DURATION / total_cells
@@ -126,6 +150,20 @@ def draw_maze(stdscr, maze) ->str | None:
                     stdscr.refresh()
                     time.sleep(0.5)
                 safe_addch(stdscr, exit_y * CELL_WIDTH + start_y + 1, exit_x * CELL_WIDTH + start_x + 1, ' ',curses.color_pair(2))
+                if path is not None:
+                    if animate:
+                        stdscr.refresh()
+                        time.sleep(0.5)
+                    for coord in path:
+                        if animate:
+                            stdscr.refresh()
+                            time.sleep(0.1)
+                        x, y = coord
+                        screen_y = y * CELL_HEIGHT + 1 + start_y
+                        screen_x = x * CELL_HEIGHT + 1 + start_x
+                        safe_addch(stdscr, screen_y , screen_x, "░", curses.color_pair(1))
+                
+            
             stdscr.refresh()
             animate = False
 
@@ -139,7 +177,7 @@ def draw_maze(stdscr, maze) ->str | None:
                 current_color_index = (current_color_index + 1) % len(COLOR_PAIRS)
                 current_color = COLOR_PAIRS[current_color_index]
             if key == ord('2'):
-                continue
+                return "PATH"
             if key == ord('1'):
                 return "REGENERATE"
             if key == curses.KEY_RESIZE:

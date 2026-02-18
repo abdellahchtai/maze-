@@ -4,9 +4,9 @@
       WIDTH      =     20  
       HEIGHT      =      20   
  
-      ENTRY       =      8      ,     8       
+      ENTRY       =      1      ,     1       
 
-      EXIT      =      1      ,      1           
+      EXIT      =      5      ,      5           
 
 
 
