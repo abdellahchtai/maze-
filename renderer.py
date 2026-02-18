@@ -74,13 +74,14 @@ def draw_maze(stdscr, maze, path, animated: bool) -> str | None:
     stdscr.timeout(100)           # wait 100ms between refreshes
     curses.start_color()
     curses.use_default_colors()
-    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_BLUE)
-    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
+    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(0, curses.COLOR_BLACK, curses.COLOR_WHITE)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_BLACK)
     curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-    curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_RED)
+    curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
     curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_CYAN)
+    curses.init_pair(7, curses.COLOR_BLACK, curses.COLOR_BLUE)
     curses.init_pair(42, curses.COLOR_BLACK, curses.COLOR_GREEN)
     CELL_HEIGHT = 2
     CELL_WIDTH = 2
@@ -136,7 +137,7 @@ def draw_maze(stdscr, maze, path, animated: bool) -> str | None:
                         if cell.east is True:
                             safe_addch(stdscr, screen_y, screen_x + 1, "░", curses.color_pair(current_color))
 
-                safe_addstr(stdscr, height -6, 0, f"==== A-Maze-ing === ENTRY({entry_x}, {entry_y})")
+                safe_addstr(stdscr, height -6, 0, f"==== A-Maze-ing ====")
                 safe_addstr(stdscr, height -5, 0, "1. Re-generate a new maze.")
                 safe_addstr(stdscr, height -4, 0, "2. Show/Hide path from entry to exit.")
                 safe_addstr(stdscr, height -3, 0, "3. Rotate maze colors")
@@ -154,14 +155,42 @@ def draw_maze(stdscr, maze, path, animated: bool) -> str | None:
                     if animate:
                         stdscr.refresh()
                         time.sleep(0.5)
-                    for coord in path:
+
+
+                    # for coord in path:
+                    #     if animate:
+                    #         stdscr.refresh()
+                    #         time.sleep(0.1)
+                    #     x, y = coord
+                    #     screen_y = y * CELL_HEIGHT + 1 + start_y
+                    #     screen_x = x * CELL_HEIGHT + 1 + start_x
+                    #     safe_addch(stdscr, screen_y , screen_x, "░", curses.color_pair(7))
+                    #     safe_addch(stdscr, entry_y * CELL_WIDTH + start_y + 1, entry_x * CELL_WIDTH + start_x + 1, ' ',curses.color_pair(1))
+                    #     safe_addch(stdscr, exit_y * CELL_WIDTH + start_y + 1, exit_x * CELL_WIDTH + start_x + 1, ' ',curses.color_pair(2))
+        
+                    i = 0
+                    while i < len(path) - 1:
                         if animate:
                             stdscr.refresh()
                             time.sleep(0.1)
-                        x, y = coord
-                        screen_y = y * CELL_HEIGHT + 1 + start_y
-                        screen_x = x * CELL_HEIGHT + 1 + start_x
-                        safe_addch(stdscr, screen_y , screen_x, "░", curses.color_pair(1))
+                        x0, y0 = path[i]
+                        x1, y1 = path[i + 1]
+
+                        screen_y = y0 * CELL_HEIGHT + 1 + start_y
+                        screen_x = x0 * CELL_HEIGHT + 1 + start_x
+
+                        if y1 == y0 and x1 < x0:
+                            safe_addch(stdscr, screen_y , screen_x - 1, "░", curses.color_pair(7))
+                        if y1 == y0 and x1 > x0:
+                            safe_addch(stdscr, screen_y , screen_x + 1, "░", curses.color_pair(7))
+                        if y1 < y0 and x1 == x0:
+                            safe_addch(stdscr, screen_y - 1 , screen_x, "░", curses.color_pair(7))
+                        if y1 > y0 and x1 == x0:
+                            safe_addch(stdscr, screen_y + 1, screen_x, "░", curses.color_pair(7))
+                        safe_addch(stdscr, screen_y , screen_x, "░", curses.color_pair(7))
+                        safe_addch(stdscr, entry_y * CELL_WIDTH + start_y + 1, entry_x * CELL_WIDTH + start_x + 1, ' ',curses.color_pair(1))
+                        safe_addch(stdscr, exit_y * CELL_WIDTH + start_y + 1, exit_x * CELL_WIDTH + start_x + 1, ' ',curses.color_pair(2))
+                        i += 1
                 
             
             stdscr.refresh()
