@@ -11,14 +11,19 @@ def ft_render(config : dict):
     entry_coord = config["ENTRY"]
     exit_coord = config["EXIT"]
     
-    maze = MazeGenerator(width, height, entry_coord, exit_coord)
-    try :
-        maze.generate_maze("n")
-    except RecursionError:
-        print("The width or the height are too big try with smaller values")
-        sys.exit(1)
-    curses.wrapper(draw_maze, maze)
-
+    while True:
+        maze = MazeGenerator(width, height, entry_coord, exit_coord)
+        try :
+            maze.generate_maze("n")
+            action = curses.wrapper(draw_maze, maze)
+            if action == "QUIT":
+                break
+            if action == "REGENERATE":
+                continue
+        except (RecursionError, KeyboardInterrupt):
+            print("The width or the height are too big try with smaller values")
+            sys.exit(1)
+    
 
 
 def safe_addch(stdscr, y, x, ch, attr=0):
@@ -39,7 +44,7 @@ def safe_addstr(stdscr, y, x, text, attr=0):
             pass
 
 
-def draw_maze(stdscr, maze) -> None:
+def draw_maze(stdscr, maze) ->str | None:
     curses.curs_set(0)            # hide the blinking cursor
     stdscr.nodelay(True)          # don't block on getch()
     stdscr.timeout(100)           # wait 100ms between refreshes
@@ -47,6 +52,11 @@ def draw_maze(stdscr, maze) -> None:
     curses.use_default_colors()
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_BLUE)
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
+    curses.init_pair(0, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_BLACK)
+    curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+    curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_RED)
+    curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_CYAN)
     curses.init_pair(42, curses.COLOR_BLACK, curses.COLOR_GREEN)
     CELL_HEIGHT = 2
     CELL_WIDTH = 2
@@ -61,6 +71,10 @@ def draw_maze(stdscr, maze) -> None:
     TARGET_DURATION = 1.2
     delay = TARGET_DURATION / total_cells
     delay = max(0.002, min(delay, 0.05))
+    current_color = 0
+    current_color_index = 0
+    COLOR_PAIRS = [3, 4, 5, 6]
+
     try:
         while True:
             
@@ -80,23 +94,23 @@ def draw_maze(stdscr, maze) -> None:
                             stdscr.refresh()
                         screen_y = row_index * CELL_HEIGHT + 1 + start_y
                         screen_x = col_index * CELL_WIDTH + 1 + start_x
-                        safe_addch(stdscr, screen_y - 1, 0 + start_x, "░", )
-                        safe_addch(stdscr, screen_y, 0 + start_x, "░")
-                        safe_addch(stdscr, screen_y + 1, 0 + start_x, "░")
-                        safe_addch(stdscr, 0 + start_y, screen_x, "░")
-                        safe_addch(stdscr, 0 + start_y, screen_x + 1, "░")
-                        safe_addch(stdscr, screen_y + 1, screen_x + 1, "░") 
+                        safe_addch(stdscr, screen_y - 1, 0 + start_x, "░", curses.color_pair(current_color))
+                        safe_addch(stdscr, screen_y, 0 + start_x, "░", curses.color_pair(current_color))
+                        safe_addch(stdscr, screen_y + 1, 0 + start_x, "░", curses.color_pair(current_color))
+                        safe_addch(stdscr, 0 + start_y, screen_x, "░", curses.color_pair(current_color))
+                        safe_addch(stdscr, 0 + start_y, screen_x + 1, "░", curses.color_pair(current_color))
+                        safe_addch(stdscr, screen_y + 1, screen_x + 1, "░", curses.color_pair(current_color))
 
                         if cell.path_42:
                             safe_addch(stdscr, screen_y, screen_x, ' ',curses.color_pair(42))
                         if cell.north:
-                            safe_addch(stdscr, screen_y - 1, screen_x, "░")
+                            safe_addch(stdscr, screen_y - 1, screen_x, "░", curses.color_pair(current_color))
                         if cell.south is True:
-                            safe_addch(stdscr, screen_y + 1, screen_x, "░")
+                            safe_addch(stdscr, screen_y + 1, screen_x, "░", curses.color_pair(current_color))
                         if cell.west is True:
-                            safe_addch(stdscr, screen_y, screen_x - 1, "░")
+                            safe_addch(stdscr, screen_y, screen_x - 1, "░", curses.color_pair(current_color))
                         if cell.east is True:
-                            safe_addch(stdscr, screen_y, screen_x + 1, "░")
+                            safe_addch(stdscr, screen_y, screen_x + 1, "░", curses.color_pair(current_color))
 
                 safe_addstr(stdscr, height -6, 0, f"==== A-Maze-ing === ENTRY({entry_x}, {entry_y})")
                 safe_addstr(stdscr, height -5, 0, "1. Re-generate a new maze.")
@@ -108,6 +122,9 @@ def draw_maze(stdscr, maze) -> None:
                 safe_addstr(stdscr, 0, 0, "Terminal is too small")
             if height >= maze_height + start_y + 6 and width >= maze_width:
                 safe_addch(stdscr, entry_y * CELL_WIDTH + start_y + 1, entry_x * CELL_WIDTH + start_x + 1, ' ',curses.color_pair(1))
+                if animate:
+                    stdscr.refresh()
+                    time.sleep(0.5)
                 safe_addch(stdscr, exit_y * CELL_WIDTH + start_y + 1, exit_x * CELL_WIDTH + start_x + 1, ' ',curses.color_pair(2))
             stdscr.refresh()
             animate = False
@@ -117,25 +134,19 @@ def draw_maze(stdscr, maze) -> None:
             if key == ord('a'):
                 animate = True
             if key == ord('4'):
-                break               
+                return "QUIT"
             if key == ord('3'):
-                continue
+                current_color_index = (current_color_index + 1) % len(COLOR_PAIRS)
+                current_color = COLOR_PAIRS[current_color_index]
             if key == ord('2'):
                 continue
             if key == ord('1'):
-                curses.nocbreak()
-                stdscr.keypad(False)
-                curses.echo()
-                curses.endwin()
-                stdscr.clear()
-                maze2 = MazeGenerator(maze.width, maze.height, maze.entry, maze.exit)
-                maze2.generate_maze("n")
-                curses.wrapper(draw_maze, maze2)
+                return "REGENERATE"
             if key == curses.KEY_RESIZE:
                 stdscr.clear()
                 continue
 
     except (KeyboardInterrupt):
-        pass
+        return "QUIT"
 
 

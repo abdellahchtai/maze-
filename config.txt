@@ -1,10 +1,10 @@
 
 
 
-      WIDTH      =     15   
-      HEIGHT      =      15   
+      WIDTH      =     20  
+      HEIGHT      =      20   
  
-      ENTRY       =      0      ,     0       
+      ENTRY       =      8      ,     8       
 
       EXIT      =      1      ,      1           
 
